@@ -17,6 +17,7 @@ def test_E2E_shopping_flow(login_page, home_page, cart_page, checkout_info_page,
     home_page.go_to_cart()
     bolt_tshirt_cart_data=cart_page.get_product_data("Sauce Labs Bolt T-Shirt")
     assert bolt_tshirt_data == bolt_tshirt_cart_data
+    assert bolt_tshirt_cart_data==0
     cart_page.remove_product("Sauce Labs Bolt T-Shirt")
     expect(home_page.shopping_cart).to_have_text("")
     cart_page.click_continue_shopping_button()
