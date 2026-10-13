@@ -3,3 +3,4 @@ requests>=2.31
 playwright>=1.51
 pytest-playwright
 pytest-html
+allure-pytest

@@ -3,3 +3,5 @@ __pycache__/
 .env
 reports/
 test_data/
+allure-results/
+allure-report/
