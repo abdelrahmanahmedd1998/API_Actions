@@ -73,6 +73,7 @@ jobs:
           --alluredir=allure-results
           
       - name: job summary
+        if: always()
         run: python scripts/summary.py reports/junit-ui.xml "UI tests" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload test evidence
