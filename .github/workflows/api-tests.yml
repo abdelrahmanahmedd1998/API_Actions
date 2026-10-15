@@ -59,6 +59,14 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
+       
+      - name: Masking experiment
+        env:
+          SAUCE_PASSWORD: ${{ secrets.SAUCE_PASSWORD }}
+        run: |
+          echo "Password is: $SAUCE_PASSWORD"
+          echo "Reversed:    $(echo $SAUCE_PASSWORD | rev)"
+          echo "Length:      ${#SAUCE_PASSWORD}"    
 
       - name: Install dependencies
         run: |
@@ -71,7 +79,7 @@ jobs:
       - name: Run UI tests
         env:
           BASE_URL: ${{vars.BASE_URL}}
-          SAUCE_USERNAME: ${{secrets.SAUCE_USERNAME}}
+          SAUCE_VALID_USERNAME: ${{secrets.SAUCE_VALID_USERNAME}}
           SAUCE_PASSWORD: ${{secrets.SAUCE_PASSWORD}}
           SAUCE_LOCKED_USERNAME: ${{secrets.SAUCE_LOCKED_USERNAME}}
         run: |
