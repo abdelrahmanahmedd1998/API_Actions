@@ -79,7 +79,7 @@ jobs:
       - name: Run UI tests
         env:
           BASE_URL: ${{vars.BASE_URL}}
-          SAUCE_USERNAME: ${{secrets.SAUCE_USERNAME}}
+          SAUCE_VALID_USERNAME: ${{secrets.SAUCE_VALID_USERNAME}}
           SAUCE_PASSWORD: ${{secrets.SAUCE_PASSWORD}}
           SAUCE_LOCKED_USERNAME: ${{secrets.SAUCE_LOCKED_USERNAME}}
         run: |

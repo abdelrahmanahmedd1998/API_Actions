@@ -4,3 +4,4 @@ playwright>=1.51
 pytest-playwright
 pytest-html
 allure-pytest
+python-dotenv==1.2.3
