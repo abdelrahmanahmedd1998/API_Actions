@@ -27,6 +27,8 @@ jobs:
           pip install -r requirments.txt
 
       - name: Run API test
+        env:
+          API_BASE_URL: ${{vars.API_BASE_URL}}
         run: python -m pytest tests/test_api.py -v --tb=short
         
       - name: Upload Allure results
@@ -67,6 +69,11 @@ jobs:
         run: python -m playwright install --with-deps chromium
 
       - name: Run UI tests
+        env:
+          BASE_URL: ${{vars.BASE_URL}}
+          SAUCE_USERNAME: ${{secrets.SAUCE_USERNAME}}
+          SAUCE_PASSWORD: ${{secrets.SAUCE_PASSWORD}}
+          SAUCE_LOCKED_USERNAME: ${{secrets.SAUCE_LOCKED_USERNAME}}
         run: |
           python -m pytest tests/test_1.py tests/test_2.py tests/test_3.py -v --tb=short \
           --junitxml=re[prts/junit-ui.xml \
