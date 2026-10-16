@@ -129,7 +129,7 @@ jobs:
           SAUCE_PASSWORD: ${{ secrets.SAUCE_PASSWORD }}
         
         run: |
-          python -m pytest tests/test_1.py tests/test_2.py tests/test_3.py -n 2 auto --browser ${{ matrix.browser }} -v --tb=short \
+          python -m pytest tests/test_1.py tests/test_2.py tests/test_3.py -n 2 --browser ${{ matrix.browser }} -v --tb=short \
           --junitxml=reports/junit-ui-${{ matrix.browser }}.xml \
           --alluredir=allure-results
 
