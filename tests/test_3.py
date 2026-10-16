@@ -2,7 +2,7 @@ import pytest
 from utils.utils import parse_price
 from test_data.test_data import STANDARD_USER,PRODUCTS
 
-
+@pytest.mark.smoke
 @pytest.mark.parametrize("product_name", PRODUCTS)
 
 def test_product_price_matches_in_cart(login_page,product_name, home_page, cart_page):

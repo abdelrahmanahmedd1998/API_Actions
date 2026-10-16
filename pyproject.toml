@@ -11,5 +11,5 @@ dependencies = [
  
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "--browser chromium --html=reports/report.html --self-contained-html --tracing=retain-on-failure --screenshot=only-on-failure"
+addopts = "--html=reports/report.html --self-contained-html --tracing=retain-on-failure --screenshot=only-on-failure"
 testpaths = ["tests"]

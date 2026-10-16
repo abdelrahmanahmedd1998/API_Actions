@@ -1,7 +1,8 @@
+import pytest
 from playwright.sync_api import Page,expect
 from test_data.test_data import LOCKED_OUT_USER
 
-
+@pytest.mark.smoke
 def test_locked_user(login_page):
     login_page.fill_username(LOCKED_OUT_USER["username"])
     login_page.fill_password(LOCKED_OUT_USER["password"])
