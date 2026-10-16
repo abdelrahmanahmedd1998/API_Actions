@@ -5,3 +5,4 @@ pytest-playwright
 pytest-html
 allure-pytest
 python-dotenv==1.2.3
+pytest-xdist==3.8.0
