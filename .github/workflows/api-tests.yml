@@ -46,7 +46,8 @@ jobs:
           if-no-files-found: ignore
         
 
-  ui-tests:
+  ui-smoke:
+    needs: api-tests
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -59,14 +60,6 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-       
-      - name: Masking experiment
-        env:
-          SAUCE_PASSWORD: ${{ secrets.SAUCE_PASSWORD }}
-        run: |
-          echo "Password is: $SAUCE_PASSWORD"
-          echo "Reversed:    $(echo $SAUCE_PASSWORD | rev)"
-          echo "Length:      ${#SAUCE_PASSWORD}"    
 
       - name: Install dependencies
         run: |
@@ -76,23 +69,22 @@ jobs:
       - name: Install Playwright browsers
         run: python -m playwright install --with-deps chromium
 
-      - name: Run UI tests
+      - name: Run smoke tests
         env:
           BASE_URL: ${{vars.BASE_URL}}
           SAUCE_VALID_USERNAME: ${{secrets.SAUCE_VALID_USERNAME}}
           SAUCE_PASSWORD: ${{secrets.SAUCE_PASSWORD}}
           SAUCE_LOCKED_USERNAME: ${{secrets.SAUCE_LOCKED_USERNAME}}
         run: |
-          python -m pytest tests/test_1.py tests/test_2.py tests/test_3.py -v --tb=short \
-          --junitxml=re[prts/junit-ui.xml \
-          --alluredir=allure-results
+          python -m pytest tests/test_1.py tests/test_2.py tests/test_3.py -m smoke --browser chromium -v --tb=short \
+          --junitxml=re[prts/junit-ui-smoke.xml 
           
       - name: job summary
         if: always()
-        run: python scripts/summary.py reports/junit-ui.xml "UI tests" >> "$GITHUB_STEP_SUMMARY"
+        run: python scripts/summary.py reports/junit-ui-smoke.xml "UI tests" >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Upload test evidence
-        if: always()
+      - name: Upload smoke evidence
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: ui-test-results
@@ -102,53 +94,65 @@ jobs:
           retention-days: 7
           if-no-files-found: warn
 
+  ui-regression:
+    needs: ui-smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v6.3.0
+        with:
+          python-version: "3.12"
+          cache: pip  
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirments.txt
+        
+      - name: Install Playwright browser
+        run: python -m playwright install --with-deps ${{matrix.browser}}    
+      
+      - name: Run UI regression
+        env:
+          BASE_URL: ${{vars.BASE_URL}}
+          SAUCE_VALID_USERNAME: ${{ secrets.SAUCE_VALID_USERNAME }}
+          SAUCE_LOCKED_USERNAME: ${{ secrets.SAUCE_LOCKED_USERNAME }}
+          SAUCE_PASSWORD: ${{ secrets.SAUCE_PASSWORD }}
+        
+        run: |
+          python -m pytest tests/test_1.py tests/test_2.py tests/test_3.py -2 auto --browser ${{ matrix.browser }} -v --tb=short \
+          --junitxml=reports/junit-ui-${{ matrix.browser }}.xml \
+          --alluredir=allure-results
+
+      - name: Job summary
+        if: always()
+        run: python scripts/summary.py reports/junit-ui-${{ matrix.browser }}.xml "UI regression (${{ matrix.browser }})" >> "$GITHUB_STEP_SUMMARY"
+      
+      - name: UPLOAD TEST EVIDENCE
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-test-results-${{ matrix.browser }}
+          path: |
+            test-results/
+            reports/
+          retention-days: 7
+          if-no-files-found: warn
+        
       - name: Upload Allure results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: allure-results-ui
+          name: allure-results-ui-${{ matrix.browser }}
           path: allure-results/
-          if-no-files-found: ignore
+          if-no-files-found: ignore    
 
-  publish-report:
-    needs: [api-tests, ui-tests]
-    if: always() && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
-
-    environment:
-      name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
-    steps:
-      - name: Download all Allure results
-        uses: actions/download-artifact@v4
-        with:
-          pattern: allure-results-*
-          merge-multiple: true
-          path: allure-results
-
-      - name: Set up Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "17"
-
-      - name: Generate Allure report
-        run: |
-          npm install -g allure-commandline
-          allure generate allure-results --clean -o allure-report
-
-      - name: Configure Pages
-        uses: actions/configure-pages@v5
-
-      - name: Upload report for Pages
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: allure-report
-
-      - name: Deploy to GitHub Pages
-        id: deploy
-        uses: actions/deploy-pages@v4       
