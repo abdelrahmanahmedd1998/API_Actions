@@ -155,4 +155,33 @@ jobs:
           name: allure-results-ui-${{ matrix.browser }}
           path: allure-results/
           if-no-files-found: ignore    
+      
+  ui-in-container:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Build test image
+        run: docker build -t saucedemo-tests .  
+      
+      - name: Run tests in the container
+        env:
+          BASE_URL: ${{vars.BASE_URL}}
+          SAUCE_VALID_USERNAME: ${{ secrets.SAUCE_VALID_USERNAME }}
+          SAUCE_LOCKED_USERNAME: ${{ secrets.SAUCE_LOCKED_USERNAME }}
+          SAUCE_PASSWORD: ${{ secrets.SAUCE_PASSWORD }}
+
+        run: |
+          mkdir -p reports test-results
+          docker run --rm \
+          -e BASE_URL -e SAUCE_VALID_USERNAME -e SAUCE_LOCKED_USERNAME -e SAUCE_PASSWORD \
+          -v "$PWD/reports:/app/reports" \
+          -v "$PWD/test-results:/app/test-results" \
+          saucedemo-tests
+
+
+    container:
+      image: mcr.microsoft.com         
 
